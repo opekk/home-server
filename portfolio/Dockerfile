@@ -5,7 +5,7 @@ RUN npm install
 COPY . .
 RUN npm run build
 
-FROM alpine:3.20
-COPY --from=build /app/dist /build
-# Copy files into the mounted volume at runtime
-CMD ["cp", "-r", "/build/.", "/dist/"]
+FROM caddy:2-alpine
+COPY --from=build /app/dist /srv
+EXPOSE 80
+CMD ["caddy", "file-server", "--root", "/srv", "--listen", ":80"]

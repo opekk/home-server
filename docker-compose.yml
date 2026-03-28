@@ -9,7 +9,6 @@ services:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
-      - portfolio_dist:/srv/portfolio:ro
     networks:
       - web
 
@@ -28,9 +27,9 @@ services:
       context: ./portfolio
       dockerfile: Dockerfile
     container_name: portfolio
-    volumes:
-      - portfolio_dist:/dist
-    # This container builds and exits — Caddy serves the static files
+    restart: unless-stopped
+    networks:
+      - web
 
   filebrowser:
     image: filebrowser/filebrowser:latest
@@ -60,7 +59,6 @@ services:
 volumes:
   caddy_data:
   caddy_config:
-  portfolio_dist:
 
 networks:
   web:

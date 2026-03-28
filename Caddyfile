@@ -3,9 +3,7 @@
 :80 {
 	@portfolio host portfolio.opekk.dev
 	handle @portfolio {
-		root * /srv/portfolio
-		file_server
-		encode gzip
+		reverse_proxy portfolio:80
 	}
 
 	@tutor host tutor.opekk.dev
