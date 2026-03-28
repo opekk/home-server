@@ -1,19 +1,24 @@
-# Replace yourdomain.com with your actual domain
-# Caddy automatically handles HTTPS via Let's Encrypt
+# Caddy listens on HTTP only — Cloudflare Tunnel handles HTTPS externally
 
-portfolio.yourdomain.com {
-	root * /srv/portfolio
-	file_server
-	encode gzip
+:80 {
+	@portfolio host portfolio.opekk.dev
+	handle @portfolio {
+		root * /srv/portfolio
+		file_server
+		encode gzip
+	}
 
-	# SPA fallback — uncomment if using client-side routing
-	# try_files {path} /index.html
-}
+	@tutor host tutor.opekk.dev
+	handle @tutor {
+		reverse_proxy filebrowser:80
+	}
 
-tutor.yourdomain.com {
-	reverse_proxy filebrowser:80
-}
+	@webhook host webhook.opekk.dev
+	handle @webhook {
+		reverse_proxy webhook:9000
+	}
 
-webhook.yourdomain.com {
-	reverse_proxy webhook:9000
+	handle {
+		respond "Not found" 404
+	}
 }
