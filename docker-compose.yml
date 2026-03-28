@@ -37,7 +37,7 @@ services:
     restart: unless-stopped
     volumes:
       - ./tutor/data:/srv
-      - ./tutor/filebrowser.db:/database/filebrowser.db
+      - filebrowser_db:/database
       - ./tutor/settings.json:/config/settings.json:ro
     networks:
       - web
@@ -59,6 +59,7 @@ services:
 volumes:
   caddy_data:
   caddy_config:
+  filebrowser_db:
 
 networks:
   web:
