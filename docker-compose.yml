@@ -1,0 +1,69 @@
+services:
+  caddy:
+    image: caddy:2-alpine
+    container_name: caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+      - portfolio_dist:/srv/portfolio:ro
+    networks:
+      - web
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared
+    restart: unless-stopped
+    command: tunnel run
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+    networks:
+      - web
+
+  portfolio:
+    build:
+      context: ./portfolio
+      dockerfile: Dockerfile
+    container_name: portfolio
+    volumes:
+      - portfolio_dist:/dist
+    # This container builds and exits — Caddy serves the static files
+
+  filebrowser:
+    image: filebrowser/filebrowser:latest
+    container_name: filebrowser
+    restart: unless-stopped
+    volumes:
+      - ./tutor/data:/srv
+      - ./tutor/filebrowser.db:/database/filebrowser.db
+      - ./tutor/settings.json:/config/settings.json:ro
+    networks:
+      - web
+
+  webhook:
+    build:
+      context: ./deploy
+      dockerfile: Dockerfile
+    container_name: webhook
+    restart: unless-stopped
+    environment:
+      - WEBHOOK_SECRET=${WEBHOOK_SECRET}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - .:/app/repo
+    networks:
+      - web
+
+volumes:
+  caddy_data:
+  caddy_config:
+  portfolio_dist:
+
+networks:
+  web:
+    driver: bridge

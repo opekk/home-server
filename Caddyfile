@@ -1,0 +1,19 @@
+# Replace yourdomain.com with your actual domain
+# Caddy automatically handles HTTPS via Let's Encrypt
+
+portfolio.yourdomain.com {
+	root * /srv/portfolio
+	file_server
+	encode gzip
+
+	# SPA fallback — uncomment if using client-side routing
+	# try_files {path} /index.html
+}
+
+tutor.yourdomain.com {
+	reverse_proxy filebrowser:80
+}
+
+webhook.yourdomain.com {
+	reverse_proxy webhook:9000
+}

@@ -1,0 +1,5 @@
+.env
+tutor/data/
+tutor/filebrowser.db
+portfolio/node_modules/
+portfolio/dist/
