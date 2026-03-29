@@ -3,17 +3,26 @@
 :80 {
 	@portfolio host portfolio.opekk.dev
 	handle @portfolio {
-		reverse_proxy portfolio:80
+		reverse_proxy portfolio:80 {
+			lb_try_duration 10s
+			lb_try_interval 250ms
+		}
 	}
 
 	@tutor host tutor.opekk.dev
 	handle @tutor {
-		reverse_proxy filebrowser:80
+		reverse_proxy filebrowser:80 {
+			lb_try_duration 10s
+			lb_try_interval 250ms
+		}
 	}
 
 	@webhook host webhook.opekk.dev
 	handle @webhook {
-		reverse_proxy webhook:9000
+		reverse_proxy webhook:9000 {
+			lb_try_duration 10s
+			lb_try_interval 250ms
+		}
 	}
 
 	handle {
