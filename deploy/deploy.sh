@@ -23,9 +23,9 @@ else
     git reset --hard "origin/$BRANCH" 2>&1 | tee -a "$LOG_FILE"
 fi
 
-# Stop, rebuild, and restart the service
+# Stop and remove the old container, then rebuild and start
 cd "$COMPOSE_DIR"
-docker compose down "$SERVICE" 2>&1 | tee -a "$LOG_FILE"
+docker compose rm -sf "$SERVICE" 2>&1 | tee -a "$LOG_FILE"
 docker compose build --no-cache "$SERVICE" 2>&1 | tee -a "$LOG_FILE"
 docker compose up -d "$SERVICE" 2>&1 | tee -a "$LOG_FILE"
 
