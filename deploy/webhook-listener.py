@@ -7,7 +7,7 @@ import subprocess
 from http.server import HTTPServer, BaseHTTPRequestHandler
 
 WEBHOOK_SECRET = os.environ.get("WEBHOOK_SECRET", "")
-REPO_DIR = "/app/repo"
+REPOS_CONFIG = "/app/repos.json"
 
 
 def verify_signature(payload: bytes, signature: str) -> bool:
@@ -17,6 +17,11 @@ def verify_signature(payload: bytes, signature: str) -> bool:
         WEBHOOK_SECRET.encode(), payload, hashlib.sha256
     ).hexdigest()
     return hmac.compare_digest(expected, signature)
+
+
+def load_repos():
+    with open(REPOS_CONFIG) as f:
+        return json.load(f)
 
 
 class WebhookHandler(BaseHTTPRequestHandler):
@@ -41,20 +46,36 @@ class WebhookHandler(BaseHTTPRequestHandler):
         data = json.loads(payload)
         ref = data.get("ref", "")
         repo_name = data.get("repository", {}).get("name", "unknown")
+        clone_url = data.get("repository", {}).get("clone_url", "")
 
         print(f"Push to {repo_name} on {ref}")
 
-        # Only deploy on pushes to main/master
-        if ref not in ("refs/heads/main", "refs/heads/master"):
+        repos = load_repos()
+        if repo_name not in repos:
             self.send_response(200)
             self.end_headers()
-            self.wfile.write(b"Ignored branch: " + ref.encode())
+            self.wfile.write(f"No config for repo: {repo_name}".encode())
             return
 
-        # Run deploy script in background
+        config = repos[repo_name]
+        branch = config.get("branch", "main")
+
+        if ref != f"refs/heads/{branch}":
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(f"Ignored branch: {ref}".encode())
+            return
+
         subprocess.Popen(
-            ["/bin/sh", "/app/deploy.sh", repo_name],
-            cwd=REPO_DIR,
+            [
+                "/bin/sh", "/app/deploy.sh",
+                repo_name,
+                clone_url,
+                config["path"],
+                config["service"],
+                branch,
+            ],
+            cwd="/app/repo",
         )
 
         self.send_response(200)

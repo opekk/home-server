@@ -1,0 +1,7 @@
+{
+  "portfolio": {
+    "service": "portfolio",
+    "path": "/app/repo/projects/portfolio",
+    "branch": "main"
+  }
+}

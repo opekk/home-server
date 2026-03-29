@@ -7,6 +7,7 @@ WORKDIR /app
 
 COPY webhook-listener.py .
 COPY deploy.sh .
+COPY repos.json .
 RUN chmod +x deploy.sh
 
 EXPOSE 9000

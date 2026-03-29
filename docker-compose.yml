@@ -24,7 +24,7 @@ services:
 
   portfolio:
     build:
-      context: ./portfolio
+      context: ./projects/portfolio
       dockerfile: Dockerfile
     container_name: portfolio
     restart: unless-stopped
