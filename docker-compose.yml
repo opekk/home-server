@@ -1,3 +1,5 @@
+name: home-server
+
 services:
   caddy:
     image: caddy:2-alpine
