@@ -39,14 +39,13 @@ services:
     networks:
       - web
 
-  filebrowser:
-    image: filebrowser/filebrowser:latest
-    container_name: filebrowser
+  tutor:
+    image: sigoden/dufs:latest
+    container_name: tutor
     restart: unless-stopped
+    command: /srv --allow-upload --allow-delete --allow-search
     volumes:
       - ./tutor/data:/srv
-      - filebrowser_db:/database
-      - ./tutor/settings.json:/config/settings.json:ro
     networks:
       - web
 
@@ -67,7 +66,6 @@ services:
 volumes:
   caddy_data:
   caddy_config:
-  filebrowser_db:
 
 networks:
   web:
