@@ -4,7 +4,7 @@ FROM python:3.13-alpine
 RUN apk add --no-cache docker-cli docker-cli-compose git
 
 # Create non-root user
-RUN addgroup -g 999 docker && adduser -D -u 1000 webhook && addgroup webhook docker
+RUN adduser -D -u 1000 webhook
 
 WORKDIR /app
 
