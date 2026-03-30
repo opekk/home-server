@@ -2,6 +2,7 @@
   "portfolio": {
     "service": "portfolio",
     "path": "/app/repo/projects/portfolio",
-    "branch": "main"
+    "branch": "main",
+    "clone_url": "https://github.com/opekk/portfolio.git"
   }
 }

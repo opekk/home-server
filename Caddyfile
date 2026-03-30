@@ -1,8 +1,15 @@
-# Caddy listens on HTTP only — Cloudflare Tunnel handles HTTPS externally
+{
+	admin off
+}
 
 :80 {
 	@portfolio host portfolio.opekk.dev
 	handle @portfolio {
+		header {
+			X-Content-Type-Options nosniff
+			X-Frame-Options DENY
+			Referrer-Policy strict-origin-when-cross-origin
+		}
 		reverse_proxy portfolio:80 {
 			lb_try_duration 10s
 			lb_try_interval 250ms

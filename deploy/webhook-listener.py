@@ -46,7 +46,6 @@ class WebhookHandler(BaseHTTPRequestHandler):
         data = json.loads(payload)
         ref = data.get("ref", "")
         repo_name = data.get("repository", {}).get("name", "unknown")
-        clone_url = data.get("repository", {}).get("clone_url", "")
 
         print(f"Push to {repo_name} on {ref}")
 
@@ -70,7 +69,7 @@ class WebhookHandler(BaseHTTPRequestHandler):
             [
                 "/bin/sh", "/app/deploy.sh",
                 repo_name,
-                clone_url,
+                config["clone_url"],
                 config["path"],
                 config["service"],
                 branch,
