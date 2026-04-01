@@ -15,4 +15,5 @@ RUN mkdir /data && chown sensors:sensors /data
 EXPOSE 8000
 
 USER sensors
+ENV PYTHONUNBUFFERED=1
 CMD ["python", "server.py"]
