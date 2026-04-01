@@ -2,6 +2,8 @@ FROM python:3.13-alpine
 
 RUN adduser -D -u 1000 sensors
 
+RUN pip install --no-cache-dir pyserial
+
 WORKDIR /app
 
 COPY server.py .

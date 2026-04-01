@@ -2,3 +2,4 @@
 tutor/data/
 tutor/filebrowser.db
 projects/
+sensors/config.h

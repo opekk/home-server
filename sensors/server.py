@@ -1,10 +1,14 @@
 import json
 import os
+import threading
 from datetime import datetime, timezone
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from pathlib import Path
 
-API_KEY = os.environ.get("SENSORS_API_KEY", "")
+import serial
+
+SERIAL_PORT = os.environ.get("SERIAL_PORT", "/dev/ttyUSB0")
+BAUD_RATE = 115200
 DATA_FILE = Path("/data/latest.json")
 
 latest_reading = {"temperature": None, "updated_at": None}
@@ -24,6 +28,28 @@ def persist():
         DATA_FILE.write_text(json.dumps(latest_reading))
     except OSError:
         pass
+
+
+def serial_reader():
+    while True:
+        try:
+            ser = serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=5)
+            print(f"Reading from {SERIAL_PORT}")
+            while True:
+                line = ser.readline().decode("utf-8", errors="ignore").strip()
+                if line.startswith("TEMP:"):
+                    try:
+                        temperature = float(line[5:])
+                        latest_reading["temperature"] = temperature
+                        latest_reading["updated_at"] = datetime.now(timezone.utc).isoformat()
+                        persist()
+                        print(f"Temperature updated: {temperature}")
+                    except ValueError:
+                        pass
+        except serial.SerialException as e:
+            print(f"Serial error: {e}, retrying in 5s...")
+            import time
+            time.sleep(5)
 
 
 HTML_TEMPLATE = """<!DOCTYPE html>
@@ -91,48 +117,14 @@ class SensorHandler(BaseHTTPRequestHandler):
         self.send_response(404)
         self.end_headers()
 
-    def do_POST(self):
-        if self.path != "/api/temperature":
-            self.send_response(404)
-            self.end_headers()
-            return
-
-        key = self.headers.get("X-API-Key", "")
-        if not API_KEY or key != API_KEY:
-            self.send_response(401)
-            self.end_headers()
-            self.wfile.write(b"Invalid API key")
-            return
-
-        content_length = int(self.headers.get("Content-Length", 0))
-        body = self.rfile.read(content_length)
-
-        try:
-            data = json.loads(body)
-            temperature = float(data["temperature"])
-        except (json.JSONDecodeError, KeyError, ValueError, TypeError):
-            self.send_response(400)
-            self.end_headers()
-            self.wfile.write(b"Invalid JSON: expected {\"temperature\": <number>}")
-            return
-
-        latest_reading["temperature"] = temperature
-        latest_reading["updated_at"] = datetime.now(timezone.utc).isoformat()
-        persist()
-
-        print(f"Temperature updated: {temperature}")
-
-        self.send_response(200)
-        self.send_header("Content-Type", "application/json")
-        self.end_headers()
-        self.wfile.write(json.dumps(latest_reading).encode())
-
     def log_message(self, format, *args):
         print(f"{self.client_address[0]} - {format % args}")
 
 
 if __name__ == "__main__":
     load_persisted()
+    reader = threading.Thread(target=serial_reader, daemon=True)
+    reader.start()
     server = HTTPServer(("0.0.0.0", 8000), SensorHandler)
     print("Sensors server running on port 8000")
     server.serve_forever()

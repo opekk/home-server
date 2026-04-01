@@ -60,16 +60,16 @@ services:
       dockerfile: Dockerfile
     container_name: sensors
     restart: unless-stopped
-    ports:
-      - "8000:8000"
     read_only: true
     deploy:
       resources:
         limits:
           memory: 128M
           cpus: "0.25"
+    devices:
+      - ${SERIAL_PORT:-/dev/ttyUSB0}:${SERIAL_PORT:-/dev/ttyUSB0}
     environment:
-      - SENSORS_API_KEY=${SENSORS_API_KEY}
+      - SERIAL_PORT=${SERIAL_PORT:-/dev/ttyUSB0}
     volumes:
       - sensors_data:/data
     healthcheck:
