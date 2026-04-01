@@ -68,6 +68,8 @@ services:
           cpus: "0.25"
     devices:
       - ${SERIAL_PORT:-/dev/ttyUSB0}:${SERIAL_PORT:-/dev/ttyUSB0}
+    group_add:
+      - dialout
     environment:
       - SERIAL_PORT=${SERIAL_PORT:-/dev/ttyUSB0}
     volumes:

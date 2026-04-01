@@ -1,6 +1,7 @@
 FROM python:3.13-alpine
 
-RUN adduser -D -u 1000 sensors
+RUN addgroup -g 20 dialout || true
+RUN adduser -D -u 1000 -G dialout sensors
 
 RUN pip install --no-cache-dir pyserial
 
