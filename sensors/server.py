@@ -42,6 +42,7 @@ def serial_reader():
                         temperature = float(line[5:])
                         latest_reading["temperature"] = temperature
                         latest_reading["updated_at"] = datetime.now(timezone.utc).isoformat()
+                        latest_reading["updated_at"].strftime("%H-%M %d-%m-%Y")
                         persist()
                         print(f"Temperature updated: {temperature}")
                     except ValueError:
@@ -58,6 +59,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Temperature</title>
+    <meta http-equiv="refresh" content="60">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
