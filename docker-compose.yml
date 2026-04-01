@@ -56,7 +56,7 @@ services:
 
   sensors:
     build:
-      context: ./sensors
+      context: ./projects/sensors
       dockerfile: Dockerfile
     container_name: sensors
     restart: unless-stopped

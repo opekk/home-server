@@ -4,5 +4,11 @@
     "path": "/app/repo/projects/portfolio",
     "branch": "main",
     "clone_url": "https://github.com/opekk/portfolio.git"
+  },
+  "sensors": {
+    "service": "sensors",
+    "path": "/app/repo/projects/sensors",
+    "branch": "main",
+    "clone_url": "https://github.com/opekk/sensors.git"
   }
 }
