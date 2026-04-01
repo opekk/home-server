@@ -103,7 +103,7 @@ class SensorHandler(BaseHTTPRequestHandler):
 
         if self.path == "/":
             self.send_response(200)
-            self.send_header("Content-Type", "text/html")
+            self.send_header("Content-Type", "text/html; charset=utf-8")
             self.end_headers()
             if latest_reading["temperature"] is not None:
                 content = f'<div class="temp">{latest_reading["temperature"]}\u00b0C</div>'
