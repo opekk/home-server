@@ -8,51 +8,76 @@ SERVICE="$4"
 BRANCH="${5:-main}"
 
 COMPOSE_DIR="/app/repo"
-LOG_FILE="/app/deploy-${REPO_NAME}.log"
+LOG_FILE="/tmp/deploy-${REPO_NAME}.log"
 
-echo "=== Deploy started: ${REPO_NAME} at $(date) ===" | tee "$LOG_FILE"
+# Bypass git "dubious ownership" for bind-mounted repos
+export GIT_CONFIG_COUNT=1
+export GIT_CONFIG_KEY_0=safe.directory
+export GIT_CONFIG_VALUE_0='*'
+
+# Run a command, log output, and preserve its exit code.
+# Avoids cmd|tee pattern where set -e cannot catch failures.
+run_cmd() {
+    local tmpout="/tmp/cmd_output.$$"
+    if "$@" > "$tmpout" 2>&1; then
+        cat "$tmpout" | tee -a "$LOG_FILE"
+        rm -f "$tmpout"
+    else
+        local rc=$?
+        cat "$tmpout" | tee -a "$LOG_FILE"
+        rm -f "$tmpout"
+        echo "ERROR: command failed (exit $rc): $*" | tee -a "$LOG_FILE"
+        exit $rc
+    fi
+}
+
+log() {
+    echo "$1" | tee -a "$LOG_FILE"
+}
+
+log "=== Deploy started: ${REPO_NAME} at $(date) ==="
 
 # Clone if the repo doesn't exist, otherwise pull
 if [ ! -d "$REPO_PATH/.git" ]; then
-    echo "Cloning ${CLONE_URL} into ${REPO_PATH}..." | tee -a "$LOG_FILE"
-    git clone --branch "$BRANCH" "$CLONE_URL" "$REPO_PATH" 2>&1 | tee -a "$LOG_FILE"
+    log "Cloning ${CLONE_URL} into ${REPO_PATH}..."
+    run_cmd git clone --branch "$BRANCH" "$CLONE_URL" "$REPO_PATH"
 else
-    echo "Pulling latest changes..." | tee -a "$LOG_FILE"
+    log "Pulling latest changes..."
     cd "$REPO_PATH"
-    git fetch origin "$BRANCH" 2>&1 | tee -a "$LOG_FILE"
-    git reset --hard "origin/$BRANCH" 2>&1 | tee -a "$LOG_FILE"
+    run_cmd git fetch origin "$BRANCH"
+    run_cmd git reset --hard "origin/$BRANCH"
 fi
 
 # Build new image while old container keeps serving traffic
 cd "$COMPOSE_DIR"
-echo "Building new image (old container still serving)..." | tee -a "$LOG_FILE"
-docker compose build --no-cache "$SERVICE" 2>&1 | tee -a "$LOG_FILE"
+log "Building new image (old container still serving)..."
+run_cmd docker compose build --no-cache "$SERVICE"
 
 # Fast swap: Caddy retries during the ~1-2s gap
-echo "Swapping containers..." | tee -a "$LOG_FILE"
-docker compose up -d --force-recreate "$SERVICE" 2>&1 | tee -a "$LOG_FILE"
+log "Swapping containers..."
+run_cmd docker compose up -d --force-recreate "$SERVICE"
 
 # Wait for the new container to pass health check
-echo "Waiting for health check..." | tee -a "$LOG_FILE"
+log "Waiting for health check..."
 TRIES=0
 MAX_TRIES=30
 while [ "$TRIES" -lt "$MAX_TRIES" ]; do
     HEALTH=$(docker inspect --format='{{.State.Health.Status}}' "$SERVICE" 2>/dev/null || echo "none")
     if [ "$HEALTH" = "healthy" ]; then
-        echo "Container is healthy!" | tee -a "$LOG_FILE"
+        log "Container is healthy!"
         break
     fi
     if [ "$HEALTH" = "none" ]; then
-        echo "No health check configured, skipping wait." | tee -a "$LOG_FILE"
+        log "No health check configured, skipping wait."
         break
     fi
     TRIES=$((TRIES + 1))
-    echo "Health: $HEALTH (attempt $TRIES/$MAX_TRIES)" | tee -a "$LOG_FILE"
+    log "Health: $HEALTH (attempt $TRIES/$MAX_TRIES)"
     sleep 2
 done
 
 if [ "$TRIES" -eq "$MAX_TRIES" ]; then
-    echo "WARNING: Container did not become healthy within timeout" | tee -a "$LOG_FILE"
+    log "WARNING: Container did not become healthy within timeout"
 fi
 
-echo "=== Deploy finished: ${REPO_NAME} at $(date) ===" | tee -a "$LOG_FILE"
+log "=== Deploy finished: ${REPO_NAME} at $(date) ==="
