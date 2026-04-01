@@ -60,6 +60,8 @@ services:
       dockerfile: Dockerfile
     container_name: sensors
     restart: unless-stopped
+    ports:
+      - "8000:8000"
     read_only: true
     deploy:
       resources:
