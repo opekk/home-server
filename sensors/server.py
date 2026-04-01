@@ -42,7 +42,6 @@ def serial_reader():
                         temperature = float(line[5:])
                         latest_reading["temperature"] = temperature
                         latest_reading["updated_at"] = datetime.now(timezone.utc).isoformat()
-                        latest_reading["updated_at"].strftime("%H-%M %d-%m-%Y")
                         persist()
                         print(f"Temperature updated: {temperature}")
                     except ValueError:
