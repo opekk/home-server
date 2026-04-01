@@ -59,7 +59,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Temperature</title>
-    <meta http-equiv="refresh" content="60">
+    <meta http-equiv="refresh" content="1">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -107,10 +107,7 @@ class SensorHandler(BaseHTTPRequestHandler):
             self.send_header("Content-Type", "text/html")
             self.end_headers()
             if latest_reading["temperature"] is not None:
-                content = (
-                    f'<div class="temp">{latest_reading["temperature"]}\u00b0C</div>'
-                    f'<div class="updated">Updated: {latest_reading["updated_at"]}</div>'
-                )
+                content = f'<div class="temp">{latest_reading["temperature"]}\u00b0C</div>'
             else:
                 content = '<div class="no-data">No data yet</div>'
             self.wfile.write(HTML_TEMPLATE.replace("CONTENT", content).encode())
