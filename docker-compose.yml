@@ -54,6 +54,31 @@ services:
     networks:
       - web
 
+  sensors:
+    build:
+      context: ./sensors
+      dockerfile: Dockerfile
+    container_name: sensors
+    restart: unless-stopped
+    read_only: true
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: "0.25"
+    environment:
+      - SENSORS_API_KEY=${SENSORS_API_KEY}
+    volumes:
+      - sensors_data:/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/')"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    networks:
+      - web
+
   webhook:
     build:
       context: ./deploy
@@ -79,6 +104,7 @@ services:
 volumes:
   caddy_data:
   caddy_config:
+  sensors_data:
 
 networks:
   web:

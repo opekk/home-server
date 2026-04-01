@@ -24,6 +24,19 @@
 		}
 	}
 
+	@sensors host sensors.opekk.dev
+	handle @sensors {
+		header {
+			X-Content-Type-Options nosniff
+			X-Frame-Options DENY
+			Referrer-Policy strict-origin-when-cross-origin
+		}
+		reverse_proxy sensors:8000 {
+			lb_try_duration 10s
+			lb_try_interval 250ms
+		}
+	}
+
 	@webhook host webhook.opekk.dev
 	handle @webhook {
 		reverse_proxy webhook:9000 {
