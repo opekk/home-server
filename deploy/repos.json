@@ -5,10 +5,10 @@
     "branch": "main",
     "clone_url": "https://github.com/opekk/portfolio.git"
   },
-  "sensors": {
+  "temperature-sensor": {
     "service": "sensors",
-    "path": "/app/repo/projects/sensors",
+    "path": "/app/repo/projects/temperature-sensor",
     "branch": "main",
-    "clone_url": "https://github.com/opekk/sensors.git"
+    "clone_url": "https://github.com/opekk/temperature-sensor.git"
   }
 }

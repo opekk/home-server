@@ -56,7 +56,7 @@ services:
 
   sensors:
     build:
-      context: ./projects/sensors
+      context: ./projects/temperature-sensor
       dockerfile: Dockerfile
     container_name: sensors
     restart: unless-stopped
@@ -95,10 +95,13 @@ services:
         limits:
           memory: 256M
           cpus: "0.5"
+    group_add:
+      - docker
     tmpfs:
       - /tmp
     environment:
       - WEBHOOK_SECRET=${WEBHOOK_SECRET}
+      - DOCKER_CONFIG=/tmp/.docker
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - .:/app/repo
