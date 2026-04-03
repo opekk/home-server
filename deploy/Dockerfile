@@ -19,6 +19,5 @@ RUN chmod +x deploy.sh
 
 EXPOSE 9000
 
-USER webhook
 ENV PYTHONUNBUFFERED=1
 CMD ["python", "webhook-listener.py"]
