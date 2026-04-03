@@ -1,7 +1,7 @@
 FROM python:3.13-alpine
 
 # Install docker CLI for running compose commands
-RUN apk add --no-cache docker-cli docker-cli-compose git
+RUN apk add --no-cache docker-cli docker-cli-compose git su-exec
 
 # Create docker group matching host GID for socket access
 RUN addgroup -g 989 docker
@@ -15,10 +15,10 @@ WORKDIR /app
 COPY webhook-listener.py .
 COPY deploy.sh .
 COPY repos.json .
-RUN chmod +x deploy.sh
+COPY entrypoint.sh .
+RUN chmod +x deploy.sh entrypoint.sh
 
 EXPOSE 9000
 
-USER webhook
 ENV PYTHONUNBUFFERED=1
-CMD ["python", "webhook-listener.py"]
+ENTRYPOINT ["./entrypoint.sh"]
