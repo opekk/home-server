@@ -44,16 +44,6 @@ services:
     networks:
       - web
 
-  tutor:
-    image: sigoden/dufs:v0.45.0
-    container_name: tutor
-    restart: unless-stopped
-    command: /srv --allow-search --allow-upload --allow-delete --auth admin:${TUTOR_PASSWORD}@/:rw
-    volumes:
-      - ./tutor/data:/srv
-    networks:
-      - web
-
   sensors:
     build:
       context: ./projects/temperature-sensor

@@ -1,7 +1,5 @@
 .DS_Store
 .env
 
-tutor/data/
-tutor/filebrowser.db
 projects/
 

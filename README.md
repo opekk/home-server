@@ -7,7 +7,6 @@ Self-hosted infrastructure running on a ThinkPad T430 with Debian 13. All servic
 ```
 Internet → Cloudflare Tunnel → Caddy (reverse proxy)
                                   ├── portfolio.opekk.dev   → Astro static site
-                                  ├── tutor.opekk.dev       → dufs file server
                                   ├── sensors.opekk.dev     → Temperature dashboard
                                   └── webhook.opekk.dev     → Deploy webhook
 ```
@@ -19,7 +18,6 @@ Internet → Cloudflare Tunnel → Caddy (reverse proxy)
 | **Caddy** | `caddy:2.11-alpine` | Reverse proxy with security headers, routes traffic to all services |
 | **Cloudflared** | `cloudflare/cloudflared:2026.3.0` | Cloudflare Tunnel — exposes services to the internet without opening ports |
 | **Portfolio** | Built from [opekk/portfolio](https://github.com/opekk/portfolio) | Static portfolio site built with Astro |
-| **Tutor** | `sigoden/dufs:v0.45.0` | Password-protected file server for sharing tutor materials |
 | **Sensors** | Built from [opekk/temperature-sensor](https://github.com/opekk/temperature-sensor) | Reads temperature data from an ESP32 over serial and serves a dashboard |
 | **Webhook** | Built from `deploy/` | Receives GitHub push events, pulls changes, and rebuilds services with zero downtime |
 
@@ -41,8 +39,6 @@ home-server/
 ├── projects/                # Cloned project repos (git-ignored)
 │   ├── portfolio/           # github.com/opekk/portfolio
 │   └── temperature-sensor/  # github.com/opekk/temperature-sensor
-├── tutor/
-│   └── data/                # Tutor files served by dufs
 └── deploy/
     ├── webhook-listener.py  # GitHub webhook receiver
     ├── deploy.sh            # Clone/pull + rebuild script
