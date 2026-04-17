@@ -26,7 +26,13 @@ def load_repos():
 
 class WebhookHandler(BaseHTTPRequestHandler):
     def do_POST(self):
-        content_length = int(self.headers.get("Content-Length", 0))
+        try:
+            content_length = int(self.headers.get("Content-Length", 0))
+        except ValueError:
+            self.send_response(400)
+            self.end_headers()
+            self.wfile.write(b"Invalid Content-Length")
+            return
         payload = self.rfile.read(content_length)
 
         signature = self.headers.get("X-Hub-Signature-256", "")
@@ -38,18 +44,30 @@ class WebhookHandler(BaseHTTPRequestHandler):
 
         event = self.headers.get("X-GitHub-Event", "")
         if event != "push":
-            self.send_response(200)
+            self.send_response(204)
             self.end_headers()
-            self.wfile.write(b"Ignored event: " + event.encode())
             return
 
-        data = json.loads(payload)
+        try:
+            data = json.loads(payload)
+        except json.JSONDecodeError:
+            self.send_response(400)
+            self.end_headers()
+            self.wfile.write(b"Invalid JSON payload")
+            return
         ref = data.get("ref", "")
         repo_name = data.get("repository", {}).get("name", "unknown")
 
         print(f"Push to {repo_name} on {ref}")
 
-        repos = load_repos()
+        try:
+            repos = load_repos()
+        except (OSError, json.JSONDecodeError) as e:
+            print(f"Failed to load {REPOS_CONFIG}: {e}")
+            self.send_response(500)
+            self.end_headers()
+            self.wfile.write(b"Server config error")
+            return
         if repo_name not in repos:
             self.send_response(200)
             self.end_headers()
