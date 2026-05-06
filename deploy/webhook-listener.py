@@ -2,12 +2,38 @@ import hashlib
 import hmac
 import json
 import os
+import re
 import subprocess
 
 from http.server import HTTPServer, BaseHTTPRequestHandler
 
 WEBHOOK_SECRET = os.environ.get("WEBHOOK_SECRET", "")
 REPOS_CONFIG = "/app/repos.json"
+
+SKIP_TYPES = {"docs", "chore", "style", "test", "ci"}
+SKIP_MARKER_RE = re.compile(r"\[skip (?:deploy|ci)\]", re.IGNORECASE)
+CC_PREFIX_RE = re.compile(r"^(\w+)(?:\([^)]*\))?!?:")
+
+
+def should_skip_deploy(commit_messages):
+    if not commit_messages:
+        return False, "no commits in payload"
+
+    for msg in commit_messages:
+        if SKIP_MARKER_RE.search(msg):
+            return True, "[skip deploy] / [skip ci] marker found"
+
+    types = []
+    for msg in commit_messages:
+        first_line = msg.splitlines()[0] if msg else ""
+        m = CC_PREFIX_RE.match(first_line)
+        if not m:
+            return False, f"non-conventional commit: {first_line!r}"
+        types.append(m.group(1).lower())
+
+    if all(t in SKIP_TYPES for t in types):
+        return True, f"all commits are non-code types: {types}"
+    return False, f"code-affecting types present: {types}"
 
 
 def verify_signature(payload: bytes, signature: str) -> bool:
@@ -82,6 +108,16 @@ class WebhookHandler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(f"Ignored branch: {ref}".encode())
             return
+
+        commit_messages = [c.get("message", "") for c in data.get("commits", [])]
+        skip, reason = should_skip_deploy(commit_messages)
+        if skip:
+            print(f"Skipping deploy for {repo_name}: {reason}")
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(f"Skipped: {reason}".encode())
+            return
+        print(f"Proceeding with deploy for {repo_name}: {reason}")
 
         subprocess.Popen(
             [
