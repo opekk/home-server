@@ -9,6 +9,7 @@ services:
       - "80:80"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./projects/exams:/srv/exams:ro
       - caddy_data:/data
       - caddy_config:/config
     networks:

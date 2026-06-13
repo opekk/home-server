@@ -16,6 +16,18 @@
 		}
 	}
 
+	@exams host exams.opekk.dev
+	handle @exams {
+		header {
+			X-Content-Type-Options nosniff
+			X-Frame-Options DENY
+			Referrer-Policy strict-origin-when-cross-origin
+		}
+		root * /srv/exams
+		try_files {path} /index.html
+		file_server
+	}
+
 	@tutor host tutor.opekk.dev
 	handle @tutor {
 		reverse_proxy tutor:5000 {

@@ -6,3 +6,4 @@ projects/
 __pycache__/
 *.pyc
 
+AGENTS.md
